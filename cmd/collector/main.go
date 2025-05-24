@@ -199,18 +199,18 @@ func gatherLatencyData(outputDir, wdsContext string) (*LatencyData, error) {
     data := &LatencyData{}
     var err error
 
-    log.Println("⏳ Gathering latency data...")
+    log.Println("Gathering latency data...")
     
     // Get binding policy creation time
     data.BindingCreate, err = getBindingCreationTime(wdsContext)
     if err != nil {
         return nil, fmt.Errorf("failed to get binding creation time: %v", err)
     }
-    log.Printf("✅ Binding created at: %v", data.BindingCreate)
+    log.Printf("Binding created at: %v", data.BindingCreate)
 
     // Read WDS deployment timestamps
     wdsPath := filepath.Join(outputDir, "perf-test-0/deployments-wds/deployments.csv")
-    log.Printf("📂 Reading WDS deployments from: %s", wdsPath)
+    log.Printf("Reading WDS deployments from: %s", wdsPath)
     data.WDSDeployCreate, data.WDSDeployStatus, err = readDeploymentTimestamps(wdsPath)
     if err != nil {
         return nil, fmt.Errorf("error reading WDS deployments: %v", err)
@@ -218,7 +218,7 @@ func gatherLatencyData(outputDir, wdsContext string) (*LatencyData, error) {
 
     // Read WEC deployment timestamps
     wecPath := filepath.Join(outputDir, "perf-test-0/deployments-wec/deployments.csv")
-    log.Printf("📂 Reading WEC deployments from: %s", wecPath)
+    log.Printf("Reading WEC deployments from: %s", wecPath)
     data.WECDeployCreate, data.WECDeployStatus, err = readDeploymentTimestamps(wecPath)
     if err != nil {
         return nil, fmt.Errorf("error reading WEC deployments: %v", err)
@@ -226,7 +226,7 @@ func gatherLatencyData(outputDir, wdsContext string) (*LatencyData, error) {
 
     // Read ManifestWork timestamps
     mwPath := filepath.Join(outputDir, "perf-test-0/manifestworks/manifestworks.csv")
-    log.Printf("📂 Reading ManifestWorks from: %s", mwPath)
+    log.Printf("Reading ManifestWorks from: %s", mwPath)
     data.ManifestWorkCreate, err = readCSVTimestamp(mwPath, 1)
     if err != nil {
         return nil, fmt.Errorf("error reading ManifestWorks: %v", err)
@@ -234,7 +234,7 @@ func gatherLatencyData(outputDir, wdsContext string) (*LatencyData, error) {
 
     // Read AppliedManifestWork timestamps
     amwPath := filepath.Join(outputDir, "perf-test-0/appliedmanifestworks/appliedmanifestworks.csv")
-    log.Printf("📂 Reading AppliedManifestWorks from: %s", amwPath)
+    log.Printf("Reading AppliedManifestWorks from: %s", amwPath)
     data.AppliedManifestCreate, err = readCSVTimestamp(amwPath, 1)
     if err != nil {
         return nil, fmt.Errorf("error reading AppliedManifestWorks: %v", err)
@@ -242,15 +242,15 @@ func gatherLatencyData(outputDir, wdsContext string) (*LatencyData, error) {
 
     // Handle WorkStatus with fallback
     wsPath := filepath.Join(outputDir, "perf-test-0/workstatuses/workstatuses.csv")
-    log.Printf("📂 Reading WorkStatuses from: %s", wsPath)
+    log.Printf("Reading WorkStatuses from: %s", wsPath)
     data.WorkStatusUpdate, err = readCSVTimestamp(wsPath, 1)
     if err != nil {
-        log.Printf("⚠️ WorkStatus update time unavailable: %v", err)
+        log.Printf("WorkStatus update time unavailable: %v", err)
         log.Println("   This is normal if status hasn't been reported yet")
         data.WorkStatusUpdate = time.Time{} // Explicit zero time
     }
 
-    log.Println("✅ All latency data collected successfully")
+    log.Println("All latency data collected successfully")
     return data, nil
 }
 
@@ -359,22 +359,22 @@ func readCSVTimestamp(path string, timeColumn int) (time.Time, error) {
 
 func calculateAndPrintLatencies(data *LatencyData) {
 
-    fmt.Println("\n📊 ====== KubeStellar Performance Results ======")
+    fmt.Println("\n ====== KubeStellar Performance Results ======")
     
     // Downsync metrics
-    fmt.Println("\n🔽 Downsync Metrics")
+    fmt.Println("\n Downsync Metrics")
     fmt.Printf("  Binding Creation: %v\n", data.BindingCreate.Sub(data.WDSDeployCreate).Round(time.Millisecond))
     fmt.Printf("  Packaging Time:   %v\n", data.ManifestWorkCreate.Sub(data.BindingCreate).Round(time.Millisecond))
     fmt.Printf("  Delivery Time:    %v\n", data.AppliedManifestCreate.Sub(data.ManifestWorkCreate).Round(time.Millisecond))
     fmt.Printf("  Activation Time:  %v\n", data.WECDeployCreate.Sub(data.AppliedManifestCreate).Round(time.Millisecond))
     
     // Upsync metrics
-    fmt.Println("\n🔼 Upsync Metrics")
+    fmt.Println("\n Upsync Metrics")
     fmt.Printf("  Status Report:    %v\n", data.WorkStatusUpdate.Sub(data.WECDeployStatus).Round(time.Millisecond))
     fmt.Printf("  Finalization:     %v\n", data.WDSDeployStatus.Sub(data.WorkStatusUpdate).Round(time.Millisecond))
     
     // Totals
-    fmt.Println("\n🔵 Totals")
+    fmt.Println("\n Totals")
     fmt.Printf("  Total Downsync:   %v\n", data.WECDeployCreate.Sub(data.WDSDeployCreate).Round(time.Millisecond))
     fmt.Printf("  Total Upsync:     %v\n", data.WDSDeployStatus.Sub(data.WECDeployStatus).Round(time.Millisecond))
     fmt.Printf("  End-to-End:       %v\n", data.WDSDeployStatus.Sub(data.WDSDeployCreate).Round(time.Millisecond))
