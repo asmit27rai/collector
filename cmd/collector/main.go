@@ -98,19 +98,19 @@ func collectShortExperiment(wds, its, wec *collector.Collector, args collector.C
             writer.WriteMetrics(nsPath, kind, "wec", wecMetrics)
         }
 
-        if err := collectCustomResources(its, args, nsName, nsPath); err != nil {
+        if err := collectCustomResources(its, wec, args, nsName, nsPath); err != nil {
             return err
         }
         
         // Collect custom resources
-        if err := collectCustomResources(its, args, nsName, nsPath); err != nil {
+        if err := collectCustomResources(its, wec, args, nsName, nsPath); err != nil {
             return err
         }
     }
     return nil
 }
 
-func collectCustomResources(its *collector.Collector, args collector.CollectionArgs, nsName string, nsPath string) error {
+func collectCustomResources(its *collector.Collector, wec *collector.Collector, args collector.CollectionArgs, nsName string, nsPath string) error {
     bindingPolicy := nsName
     labelSelector := fmt.Sprintf("transport.kubestellar.io/originOwnerReferenceBindingKey=%s", bindingPolicy)
 
@@ -144,25 +144,26 @@ func collectCustomResources(its *collector.Collector, args collector.CollectionA
         return err
     }
 
-    // // Collect AppliedManifestWork
-    // appliedGVR := schema.GroupVersionResource{
-    //     Group:    "internal.open-cluster-management.io",
-    //     Version:  "v1beta1",
-    //     Resource: "appliedmanifestworks",
-    // }
-    // appliedMetrics, err := its.CollectCustomResources(
-    //     appliedGVR,
-    //     "", // Use WEC context as namespace
-    //     "",
-    // )
-    // if err != nil {
-    //     return err
-    // }
+    // Collect AppliedManifestWork
+    appliedGVR := schema.GroupVersionResource{
+        Group:    "work.open-cluster-management.io",
+        Version:  "v1",
+        Resource: "appliedmanifestworks",
+    }
+    appliedMetrics, err := wec.CollectCustomResources(
+        appliedGVR,
+        "",
+        "",
+    )
+    if err != nil {
+        fmt.Printf("Error collecting applied manifest works: %v\n", err)
+        return err
+    }
 
     // Write results
     writer.WriteWorkMetrics(nsPath, "manifestworks", manifestMetrics)
     writer.WriteWorkMetrics(nsPath, "workstatuses", statusMetrics)
-    // writer.WriteWorkMetrics(nsPath, "appliedmanifestworks", appliedMetrics)
+    writer.WriteWorkMetrics(nsPath, "appliedmanifestworks", appliedMetrics)
 
     return nil
 }
