@@ -1,0 +1,19 @@
+KubeStellar Performance Metrics
+================================
+Downsync Metrics
+----------------
+Binding Creation:    N/A (invalid timestamp order)
+Packaging Time:      7m48s
+Delivery Time:       31s
+Activation Time:     19s
+Total Downsync:      42s
+
+Upsync Metrics
+--------------
+Status Report:       N/A (invalid timestamp order)
+Finalization Time:   58s
+Total Upsync:        1s
+
+End-to-End Latency
+------------------
+Total Lifecycle:     50s

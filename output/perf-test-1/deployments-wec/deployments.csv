@@ -1,1 +1,2 @@
-deployment-2pod-0	2025-05-24T06:55:43Z	2025-05-24T06:55:49Z	Available	kube-controller-manager
+Name	Created	StatusUpdate	Condition	Manager
+deployment-2pod-0	2025-05-24T10:05:12Z	2025-05-24T10:05:15Z	Available	kube-controller-manager

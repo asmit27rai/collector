@@ -1,11 +1,12 @@
-kube-root-ca.crt	2025-05-23T10:18:59Z		Exists	kube-controller-manager
-cluster-density-0	2025-05-23T10:19:09Z		Exists	
-cluster-density-1	2025-05-23T10:19:09Z		Exists	
-cluster-density-2	2025-05-23T10:19:09Z		Exists	
-cluster-density-3	2025-05-23T10:19:10Z		Exists	
-cluster-density-4	2025-05-23T10:19:10Z		Exists	
-cluster-density-5	2025-05-23T10:19:10Z		Exists	
-cluster-density-6	2025-05-23T10:19:10Z		Exists	
-cluster-density-7	2025-05-23T10:19:10Z		Exists	
-cluster-density-8	2025-05-23T10:19:10Z		Exists	
-cluster-density-9	2025-05-23T10:19:10Z		Exists	
+Name	Created	StatusUpdate	Condition	Manager
+kube-root-ca.crt	2025-05-24T10:04:12Z		Exists	kube-controller-manager
+cluster-density-0	2025-05-24T10:04:23Z		Exists	
+cluster-density-1	2025-05-24T10:04:23Z		Exists	
+cluster-density-2	2025-05-24T10:04:23Z		Exists	
+cluster-density-3	2025-05-24T10:04:23Z		Exists	
+cluster-density-4	2025-05-24T10:04:23Z		Exists	
+cluster-density-5	2025-05-24T10:04:23Z		Exists	
+cluster-density-6	2025-05-24T10:04:23Z		Exists	
+cluster-density-7	2025-05-24T10:04:23Z		Exists	
+cluster-density-8	2025-05-24T10:04:23Z		Exists	
+cluster-density-9	2025-05-24T10:04:23Z		Exists	

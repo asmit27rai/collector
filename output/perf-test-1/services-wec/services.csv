@@ -1,3 +1,4 @@
-deployment-1pod-0	2025-05-24T06:55:33Z		Active	
-deployment-1pod-1	2025-05-24T06:55:35Z		Active	
-deployment-2pod-0	2025-05-24T06:55:40Z		Active	
+Name	Created	StatusUpdate	Condition	Manager
+deployment-1pod-0	2025-05-24T10:05:11Z		Active	
+deployment-1pod-1	2025-05-24T10:05:11Z		Active	
+deployment-2pod-0	2025-05-24T10:05:12Z		Active	
