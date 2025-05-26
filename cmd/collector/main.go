@@ -132,6 +132,8 @@ func collectShortExperiment(wds, its, wec *collector.Collector, args collector.C
     if err := writeLatenciesToFile(latencyData, args.OutputDir); err != nil {
         return fmt.Errorf("error writing results: %v", err)
     }
+
+    calculateAndPrintLatencies(latencyData)
     
     log.Printf("✅ Metrics written to: %s/latency_results.txt", args.OutputDir)
     return nil
@@ -358,29 +360,40 @@ func readCSVTimestamp(path string, timeColumn int) (time.Time, error) {
 }
 
 func calculateAndPrintLatencies(data *LatencyData) {
-
     fmt.Println("\n ====== KubeStellar Performance Results ======")
-    
-    // Downsync metrics
+
+    // Downsync metrics: always do “later.Sub(earlier)”
+    bindToWDS := data.WDSDeployCreate.Sub(data.BindingCreate)
+    pkgTime   := data.ManifestWorkCreate.Sub(data.WDSDeployCreate)    // manifest after binding
+    delivery  := data.ManifestWorkCreate.Sub(data.AppliedManifestCreate)
+    activate  := data.WECDeployCreate.Sub(data.AppliedManifestCreate)
+    totalDown := data.WECDeployCreate.Sub(data.WDSDeployCreate)
+
+    // Upsync: same principle
+    statusReport := data.WDSDeployStatus.Sub(data.WorkStatusUpdate)
+    finalization  := data.WDSDeployStatus.Sub(data.WECDeployStatus)
+    totalUp       := data.WDSDeployStatus.Sub(data.WECDeployStatus)
+
+    // End-to-end (WDS status minus WDS create)
+    e2e := data.WDSDeployStatus.Sub(data.WDSDeployCreate)
+
     fmt.Println("\n Downsync Metrics")
-    fmt.Printf("  Binding Creation: %v\n", data.BindingCreate.Sub(data.WDSDeployCreate).Round(time.Millisecond))
-    fmt.Printf("  Packaging Time:   %v\n", data.ManifestWorkCreate.Sub(data.BindingCreate).Round(time.Millisecond))
-    fmt.Printf("  Delivery Time:    %v\n", data.AppliedManifestCreate.Sub(data.ManifestWorkCreate).Round(time.Millisecond))
-    fmt.Printf("  Activation Time:  %v\n", data.WECDeployCreate.Sub(data.AppliedManifestCreate).Round(time.Millisecond))
-    
-    // Upsync metrics
+    fmt.Printf("  Binding→WDS deploy:  %v\n", bindToWDS.Round(time.Millisecond))
+    fmt.Printf("  Binding→Manifest pkg: %v\n", pkgTime.Round(time.Millisecond))
+    fmt.Printf("  Manifest→Applied MW:  %v\n", delivery.Round(time.Millisecond))
+    fmt.Printf("  Applied MW→WEC deploy: %v\n", activate.Round(time.Millisecond))
+    fmt.Printf("  Total Downsync:      %v\n", totalDown.Round(time.Millisecond))
+
     fmt.Println("\n Upsync Metrics")
-    fmt.Printf("  Status Report:    %v\n", data.WorkStatusUpdate.Sub(data.WECDeployStatus).Round(time.Millisecond))
-    fmt.Printf("  Finalization:     %v\n", data.WDSDeployStatus.Sub(data.WorkStatusUpdate).Round(time.Millisecond))
-    
-    // Totals
-    fmt.Println("\n Totals")
-    fmt.Printf("  Total Downsync:   %v\n", data.WECDeployCreate.Sub(data.WDSDeployCreate).Round(time.Millisecond))
-    fmt.Printf("  Total Upsync:     %v\n", data.WDSDeployStatus.Sub(data.WECDeployStatus).Round(time.Millisecond))
-    fmt.Printf("  End-to-End:       %v\n", data.WDSDeployStatus.Sub(data.WDSDeployCreate).Round(time.Millisecond))
-    
+    fmt.Printf("  WEC status→WDS status: %v\n", statusReport.Round(time.Millisecond))
+    fmt.Printf("  WEC status→WDS final:  %v\n", finalization.Round(time.Millisecond))
+    fmt.Printf("  Total Upsync:          %v\n", totalUp.Round(time.Millisecond))
+
+    fmt.Println("\n End-to-End Latency")
+    fmt.Printf("  WDS status-minus-WDS create: %v\n", e2e.Round(time.Millisecond))
     fmt.Println("===========================================")
 }
+
 
 func writeLatenciesToFile(data *LatencyData, outputDir string) error {
     resultsPath := filepath.Join(outputDir, "latency_results.txt")
@@ -399,33 +412,58 @@ func writeLatenciesToFile(data *LatencyData, outputDir string) error {
     }
 
     content := fmt.Sprintf(`KubeStellar Performance Metrics
+Every Timestamp used in below formulas:
+
+Binding Create: %s
+WDS Deploy Create: %s
+Manifest Work Create: %s
+Applied Manifest Create: %s
+WEC Deploy Create: %s
+WEC Deploy Status: %s
+WDS Deploy Status: %s
+Work Status Update: %s
+
 ================================
 Downsync Metrics
 ----------------
-Binding Creation:    %s
-Packaging Time:      %s
-Delivery Time:       %s
-Activation Time:     %s
-Total Downsync:      %s
+Binding→WDS deploy:      %s
+Binding→Manifest pkg:    %s
+Manifest→Applied MW:     %s
+Applied MW→WEC deploy:   %s
+Total Downsync:          %s
 
 Upsync Metrics
 --------------
-Status Report:       %s
-Finalization Time:   %s
-Total Upsync:        %s
+WEC status→WDS status:   %s
+WEC status→WDS final:    %s
+Total Upsync:            %s
 
 End-to-End Latency
 ------------------
-Total Lifecycle:     %s`,
-        formatDuration(data.BindingCreate.Sub(data.WDSDeployCreate)),
-        formatDuration(data.ManifestWorkCreate.Sub(data.BindingCreate)),
-        formatDuration(data.AppliedManifestCreate.Sub(data.ManifestWorkCreate)),
-        formatDuration(data.WECDeployCreate.Sub(data.AppliedManifestCreate)),
-        formatDuration(data.WECDeployCreate.Sub(data.WDSDeployCreate)),
-        formatDuration(data.WorkStatusUpdate.Sub(data.WECDeployStatus)),
-        formatDuration(data.WDSDeployStatus.Sub(data.WorkStatusUpdate)),
-        formatDuration(data.WDSDeployStatus.Sub(data.WECDeployStatus)),
-        formatDuration(data.WDSDeployStatus.Sub(data.WDSDeployCreate)),
+Total Lifecycle:         %s`,
+        data.BindingCreate.Format(time.RFC3339),
+        data.WDSDeployCreate.Format(time.RFC3339),
+        data.ManifestWorkCreate.Format(time.RFC3339),
+        data.AppliedManifestCreate.Format(time.RFC3339),
+        data.WECDeployCreate.Format(time.RFC3339),
+        data.WECDeployStatus.Format(time.RFC3339),
+        data.WDSDeployStatus.Format(time.RFC3339),
+        data.WorkStatusUpdate.Format(time.RFC3339),
+
+        // Downsync: later.Sub(earlier)
+        formatDuration(data.WDSDeployCreate.Sub(data.BindingCreate)),              // Binding→WDS deploy
+        formatDuration(data.ManifestWorkCreate.Sub(data.WDSDeployCreate)),           // Binding→Manifest pkg
+        formatDuration(data.AppliedManifestCreate.Sub(data.ManifestWorkCreate)),   // Manifest→Applied MW
+        formatDuration(data.WECDeployCreate.Sub(data.AppliedManifestCreate)),      // Applied MW→WEC deploy
+        formatDuration(data.WECDeployCreate.Sub(data.WDSDeployCreate)),            // Total Downsync
+
+        // Upsync
+        formatDuration(data.WECDeployStatus.Sub(data.WorkStatusUpdate)),           // WEC status→WDS status (status report)
+        formatDuration(data.WorkStatusUpdate.Sub(data.WDSDeployStatus)),            // WEC status→WDS final (finalization)
+        formatDuration(data.WECDeployStatus.Sub(data.WDSDeployStatus)),            // Total Upsync
+
+        // End-to-End
+        formatDuration(data.WDSDeployStatus.Sub(data.WDSDeployCreate)),            // Total Lifecycle
     )
 
     _, err = file.WriteString(content)

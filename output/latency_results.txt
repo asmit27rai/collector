@@ -1,19 +1,30 @@
 KubeStellar Performance Metrics
+Every Timestamp used in below formulas:
+
+Binding Create: 2025-05-24T09:56:27Z
+WDS Deploy Create: 2025-05-24T10:04:23Z
+Manifest Work Create: 2025-05-26T15:09:21Z
+Applied Manifest Create: 2025-05-26T15:09:13Z
+WEC Deploy Create: 2025-05-26T15:09:54Z
+WEC Deploy Status: 2025-05-26T15:09:57Z
+WDS Deploy Status: 2025-05-26T15:09:57Z
+Work Status Update: 2025-05-26T15:09:43Z
+
 ================================
 Downsync Metrics
 ----------------
-Binding Creation:    N/A (invalid timestamp order)
-Packaging Time:      7m48s
-Delivery Time:       31s
-Activation Time:     19s
-Total Downsync:      42s
+Binding→WDS deploy:      7m56s
+Binding→Manifest pkg:    53h4m58s
+Manifest→Applied MW:     N/A (invalid timestamp order)
+Applied MW→WEC deploy:   41s
+Total Downsync:          53h5m31s
 
 Upsync Metrics
 --------------
-Status Report:       N/A (invalid timestamp order)
-Finalization Time:   58s
-Total Upsync:        1s
+WEC status→WDS status:   14s
+WEC status→WDS final:    N/A (invalid timestamp order)
+Total Upsync:            0s
 
 End-to-End Latency
 ------------------
-Total Lifecycle:     50s
+Total Lifecycle:         53h5m34s
